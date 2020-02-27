@@ -1,7 +1,7 @@
 WebAuthn Authenticator Plugin
 =============================
-.. image:: https://travis-ci.org/curityio/freja-eid-authenticator.svg?branch=master
-    :target: https://travis-ci.org/curityio/freja-eid-authenticator
+.. image:: https://travis-ci.org/curityio/webauthn-authenticator.svg?branch=master
+    :target: https://travis-ci.org/curityio/webauthn-authenticator
     
 This project provides an open source WebAuthn Authenticator plug-in for the Curity Identity Server. This allows an administrator to add functionality to Curity which will then enable end users to login using their physical authenticator devices.
 
