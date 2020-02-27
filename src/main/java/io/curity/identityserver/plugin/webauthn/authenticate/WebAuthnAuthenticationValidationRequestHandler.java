@@ -69,7 +69,7 @@ public class WebAuthnAuthenticationValidationRequestHandler implements
 
         @Nullable
         AccountAttributes accountAttributes = _accountManager.getByUserName(_configuration
-                .getUserPreferenceManager().getUsername()); //TODO fix! will always pick user from preference manager. Test it first by sending a request with a login_hint that doesn't exist
+                .getUserPreferenceManager().getUsername());
 
         if (accountAttributes != null)
         {
