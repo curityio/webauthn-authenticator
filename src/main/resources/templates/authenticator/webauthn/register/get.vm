@@ -1,0 +1,111 @@
+#*
+*  Copyright 2020 Curity AB
+*
+*  Licensed under the Apache License, Version 2.0 (the "License");
+*  you may not use this file except in compliance with the License.
+*  You may obtain a copy of the License at
+*
+*      http://www.apache.org/licenses/LICENSE-2.0
+*
+*  Unless required by applicable law or agreed to in writing, software
+*  distributed under the License is distributed on an "AS IS" BASIS,
+*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+*  See the License for the specific language governing permissions and
+*  limitations under the License.
+*#
+
+#define($_body)
+
+#parse("fragments/spinner")
+
+<div id="back-button" class="center py2 login-actions display-none">
+    <a href="$_registrationEndpoint" role="button">
+        <i class="icon ion-refresh inlineicon"></i>#message(
+        "Error, please try again")</a>
+</div>
+
+<form id="aliasForm" method="post" class="login-form hidden">
+    <label for="alias">#message("authenticator.webauthn.register.view.alias")</label>
+    <input type="text" name="alias" id="alias" value=""
+           class="block full-width mb1 field-light" autocapitalize="none">
+
+    <input type="hidden" name="id" id="id" />
+    <input type="hidden" name="type" id="type" />
+    <input type="hidden" name="rawId" id="rawId" />
+    <input type="hidden" name="uvm" id="uvm" />
+    <input type="hidden" name="clientDataJSON" id="clientDataJSON" />
+    <input type="hidden" name="authenticatorData" id="authenticatorData" />
+    <input type="hidden" name="signature" id="signature" />
+    <input type="hidden" name="userHandle" id="userHandle" />
+    <input type="hidden" name="clientExtensionResults" id="clientExtensionResults" />
+    <input type="hidden" name="attestationObject" id="attestationObject" />
+
+
+    <button type="submit" class="button button-fullwidth button-primary mt2">
+        #message("authenticator.webauthn.register.view.button")
+    </button>
+</form>
+
+#parse("fragments/jquery")
+<script $!nonceAttr>
+
+function bufferToBase64EncodedString(bin) {
+  return btoa(new Uint8Array(bin).reduce(
+    (s, byte) => s + String.fromCharCode(byte), ''
+  ));
+}
+
+navigator.credentials.create({
+    publicKey: {
+       challenge: Uint8Array.from(
+           "$!_challenge", c => c.charCodeAt(0)),
+       rp: {
+          name: "$!_rpName",
+          id: window.location.hostname
+      },
+      user: {
+          id: Uint8Array.from(
+              "$!_userId", c => c.charCodeAt(0)),
+          name: "$!_userName",
+          displayName: "$!_userDisplayName",
+      },
+      pubKeyCredParams: $!_pubKeyCredParamsAlg,
+
+      authenticatorSelection: {
+      #if($!_authenticatorAttachment)
+          authenticatorAttachment: "$!_authenticatorAttachment",
+      #end
+      userVerification: "$!_residentKeyRequirement"
+      },
+
+      timeout: "$!_timeout",
+      attestation: "$!_attestation"
+  }
+})
+.then((newCredentialInfo) => {
+    console.log('SUCCESS', newCredentialInfo)
+
+    $("#id").val(newCredentialInfo.id);
+    $("#type").val(newCredentialInfo.type);
+    $("#rawId").val(bufferToBase64EncodedString(newCredentialInfo.rawId));
+    $("#clientExtensionResults").val(btoa(JSON.stringify(newCredentialInfo.getClientExtensionResults())));
+    $("#signature").val(bufferToBase64EncodedString(newCredentialInfo.response.signature));
+    $("#authenticatorData").val(bufferToBase64EncodedString(newCredentialInfo.response.authenticatorData));
+    $("#clientDataJSON").val(bufferToBase64EncodedString(newCredentialInfo.response.clientDataJSON));
+    $("#userHandle").val(bufferToBase64EncodedString(newCredentialInfo.response.userHandle));
+    $("#attestationObject").val(bufferToBase64EncodedString(newCredentialInfo.response.attestationObject));
+    $("#challenge").val(bufferToBase64EncodedString(newCredentialInfo.challenge));
+
+    $(".waiting-spinner").hide();
+    $("#aliasForm").show();
+})
+.catch((error) => {
+    console.log('FAIL', error);
+    $(".waiting-spinner").hide();
+    $("#back-button").removeClass("display-none");
+});
+
+</script>
+#end
+
+#parse("layouts/default")
