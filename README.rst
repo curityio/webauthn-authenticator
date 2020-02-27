@@ -8,7 +8,7 @@ This project provides an open source WebAuthn Authenticator plug-in for the Curi
 Building the Plugin
 ~~~~~~~~~~~~~~~~~~~
 
-You can build the plugin by issue the command `gradle build` or `gradlew build` if using the gradle wrapper. This will produce a JAR file in the target directory, which can be installed.
+You can build the plugin by issue the command ``gradle build`` or ``gradlew build`` if using the gradle wrapper. This will produce a JAR file in the target directory, which can be installed.
 
 Installing the Plugin
 ~~~~~~~~~~~~~~~~~~~~~
