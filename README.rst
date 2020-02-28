@@ -14,6 +14,13 @@ Installing the Plugin
 ~~~~~~~~~~~~~~~~~~~~~
 
 To install the plugin, copy the compiled JAR (and all of its dependencies) into the ``${IDSVR_HOME}/usr/share/plugins/${pluginGroup}`` on each node, including the admin node. For more information about installing plugins, refer to the `curity.io/plugins`_.
+Some of the dependencies required by the plugin are already provided by the Curity Identity Server. The additional ones that are not provided and need to be copied together with the plugin are:
+
+* org.apache.commons
+* com.google.guava
+* com.fasterxml.jackson.core
+* com.fasterxml.jackson.dataformat
+* org.jose4j (This dependency is going to be provided in version 5.1.0 and above of the Curity Identity Server)
 
 Creating a WebAuthn Authenticator in Curity
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -36,7 +43,6 @@ To configure a new WebAuthn authenticator using the Curity admin UI, do the foll
 Once all of these changes are made, they will be staged, but not committed (i.e., not running). To make them active, click the ``Commit`` menu option in the ``Changes`` menu. Optionally enter a comment in the ``Deploy Changes`` dialogue and click ``OK``.
 
 Once the configuration is committed and running, the authenticator can be used like any other.
-
 
 More Information
 ~~~~~~~~~~~~~~~~
