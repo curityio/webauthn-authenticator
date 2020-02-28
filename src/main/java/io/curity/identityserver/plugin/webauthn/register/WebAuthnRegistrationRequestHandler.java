@@ -131,7 +131,7 @@ public class WebAuthnRegistrationRequestHandler implements RegistrationRequestHa
         response.putViewData("_registrationEndpoint", _configuration.getAuthenticatorInformationProvider()
                 .getFullyQualifiedRegistrationUri(), ANY);
         response.putViewData("_challenge", _registrationChallenge, ANY);
-        response.putViewData("_rpName", _configuration.getOrganisationName(), ANY);
+        response.putViewData("_rpName", _configuration.getOrganizationName(), ANY);
         response.putViewData("_userId", account.getId(), ANY);
         response.putViewData("_userName", username, ANY);
         response.putViewData("_userDisplayName", account.getDisplayName() == null ?

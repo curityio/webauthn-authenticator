@@ -39,7 +39,7 @@ import static io.curity.identityserver.plugin.webauthn.WebAuthnPluginDescriptor.
 import static se.curity.identityserver.sdk.web.Response.ResponseModelScope.FAILURE;
 import static se.curity.identityserver.sdk.web.ResponseModel.templateResponseModel;
 
-public class WebAuthnAuthenticationValidationRequestHandler implements
+public final class WebAuthnAuthenticationValidationRequestHandler implements
         AuthenticatorRequestHandler<WebAuthnAuthenticationValidationRequestModel>
 {
     private final WebAuthnPluginConfiguration _configuration;
@@ -64,7 +64,6 @@ public class WebAuthnAuthenticationValidationRequestHandler implements
     {
         WebAuthnAuthenticationValidationRequestModel.Post model = request.getPostRequestModel();
 
-        @Nullable
         Optional<AuthenticationResult> authenticationResult = Optional.empty();
 
         @Nullable

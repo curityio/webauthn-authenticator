@@ -22,7 +22,7 @@ import se.curity.identityserver.sdk.web.Request;
 
 import javax.validation.Valid;
 
-public class WebAuthnAuthenticationValidationRequestModel
+public final class WebAuthnAuthenticationValidationRequestModel
 {
     @Valid
     @Nullable
@@ -45,7 +45,7 @@ public class WebAuthnAuthenticationValidationRequestModel
         }
     }
 
-    public static class Post
+    public final static class Post
     {
         private static final String ID_PARAM = "id";
         private static final String RAW_ID_PARAM = "rawId";

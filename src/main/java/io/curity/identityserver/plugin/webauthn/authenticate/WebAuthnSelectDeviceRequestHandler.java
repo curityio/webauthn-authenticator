@@ -46,7 +46,7 @@ import static se.curity.identityserver.sdk.http.HttpStatus.OK;
 import static se.curity.identityserver.sdk.web.Response.ResponseModelScope.ANY;
 import static se.curity.identityserver.sdk.web.ResponseModel.templateResponseModel;
 
-public class WebAuthnSelectDeviceRequestHandler implements
+public final class WebAuthnSelectDeviceRequestHandler implements
         AuthenticatorRequestHandler<WebAuthnSelectDeviceRequestModel>
 {
     private final WebAuthnPluginConfiguration _configuration;
