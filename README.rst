@@ -22,7 +22,7 @@ Some of the dependencies required by the plugin are already provided by the Curi
 * com.fasterxml.jackson.dataformat
 * org.jose4j (This dependency is going to be provided in version 5.1.0 and above of the Curity Identity Server)
 
-You can find the dependencies jar files in ``build/dist/`` after executing the task ``gradlew copyRuntimeLibs``. Note that some of the above dependencies bring in a few extra ones.
+You can find the dependencies jar files in ``build/libs`` after executing the task ``gradlew copyRuntimeLibs``. Note that some of the above dependencies bring in a few extra ones.
 
 Creating a WebAuthn Authenticator in Curity
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

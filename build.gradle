@@ -25,6 +25,6 @@ dependencies {
 }
 
 task copyRuntimeLibs(type: Copy) {
-    into new File(buildDir, "dist")
+    into "$buildDir/libs"
     from configurations.runtime
 }
