@@ -184,7 +184,7 @@ public interface WebAuthnPluginConfiguration extends Configuration
         }
     }
 
-    String getOrganisationName();
+    String getOrganizationName();
 
     @Description("This option allows servers to indicate how important the attestation data is to this registration " +
             "event.")
