@@ -1,2 +1,0 @@
-# webauthn-authenticator
-WebAuthn authenticator
