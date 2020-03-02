@@ -31,7 +31,7 @@ import se.curity.identityserver.sdk.service.AutoLoginManager;
 import java.util.Collections;
 import java.util.Map;
 
-public class WebAuthnPluginDescriptor implements AuthenticatorPluginDescriptor<WebAuthnPluginConfiguration>
+public final class WebAuthnPluginDescriptor implements AuthenticatorPluginDescriptor<WebAuthnPluginConfiguration>
 {
     private static final String INDEX = "index";
     public static final String SELECT_DEVICE = "select-device";

@@ -1,7 +1,5 @@
 WebAuthn Authenticator Plugin
 =============================
-.. image:: https://travis-ci.org/curityio/webauthn-authenticator.svg?branch=master
-    :target: https://travis-ci.org/curityio/webauthn-authenticator
     
 This project provides an open source WebAuthn Authenticator plug-in for the Curity Identity Server. This allows an administrator to add functionality to Curity which will then enable end users to login using their physical authenticator devices.
 
@@ -20,7 +18,7 @@ Some of the dependencies required by the plugin are already provided by the Curi
 * com.google.guava
 * com.fasterxml.jackson.core
 * com.fasterxml.jackson.dataformat
-* org.jose4j (This dependency is going to be provided in version 5.1.0 and above of the Curity Identity Server)
+* org.jose4j
 
 You can find the dependencies jar files in ``build/libs`` after executing the task ``gradlew copyRuntimeLibs``. Note that some of the above dependencies bring in a few extra ones.
 

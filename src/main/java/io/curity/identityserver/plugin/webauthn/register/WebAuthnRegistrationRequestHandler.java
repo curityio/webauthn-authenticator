@@ -57,7 +57,7 @@ import static se.curity.identityserver.sdk.web.Response.ResponseModelScope.FAILU
 import static se.curity.identityserver.sdk.web.Response.ResponseModelScope.NOT_FAILURE;
 import static se.curity.identityserver.sdk.web.ResponseModel.templateResponseModel;
 
-public class WebAuthnRegistrationRequestHandler implements RegistrationRequestHandler<WebAuthnRegistrationRequestModel>
+public final class WebAuthnRegistrationRequestHandler implements RegistrationRequestHandler<WebAuthnRegistrationRequestModel>
 {
     private static final String SESSION_CHALLENGE = "webauthn:challenge";
     public static final String BUCKET_WEBAUTHN_STORED_SIGNED_COUNT = "bucket_webauthn_stored_signed_count";
