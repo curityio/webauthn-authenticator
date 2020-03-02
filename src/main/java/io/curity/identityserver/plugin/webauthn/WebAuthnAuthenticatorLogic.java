@@ -38,6 +38,7 @@ import se.curity.identityserver.sdk.service.SessionManager;
 import se.curity.identityserver.sdk.service.UserPreferenceManager;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -113,10 +114,8 @@ public class WebAuthnAuthenticatorLogic
 
         if (deviceList.isEmpty())
         {
-            if (_logger.isDebugEnabled())
-            {
-                _logger.debug("No devices were found with credentialId: {}", rawId);
-            }
+            _logger.debug("No devices were found with credentialId: {}", rawId);
+
             throw exceptionFactory.badRequestException(GENERIC_ERROR, "error.authentication-failed");
         }
 
@@ -128,10 +127,8 @@ public class WebAuthnAuthenticatorLogic
 
         if (!userHandle.isEmpty() && !userHandle.equals(registeredUserId))
         {
-            if (_logger.isDebugEnabled())
-            {
-                _logger.debug("Failed to validate userHandle against the registered user id.");
-            }
+            _logger.debug("Failed to validate userHandle against the registered user id.");
+
             throw exceptionFactory.badRequestException(GENERIC_ERROR, "error.authentication-failed");
         }
 
@@ -150,7 +147,7 @@ public class WebAuthnAuthenticatorLogic
         }
         catch (IOException e)
         {
-            throw new RuntimeException("Error when parsing credentialPublicKey from data-source.", e);
+            throw new UncheckedIOException("Error when parsing credentialPublicKey from data-source.", e);
         }
 
         // Step 8: Let cData, authData and sig denote the value of response’s clientDataJSON, authenticatorData, and
@@ -169,11 +166,9 @@ public class WebAuthnAuthenticatorLogic
 
         if (!clientDataType.equals(WEBAUTHN_GET))
         {
-            if (_logger.isDebugEnabled())
-            {
-                _logger.debug("Failed to validate clientData.type, value: {}, expected value: {}",
-                        clientDataType, WEBAUTHN_GET);
-            }
+            _logger.debug("Failed to validate clientData.type, value: {}, expected value: {}",
+                    clientDataType, WEBAUTHN_GET);
+
             throw exceptionFactory.badRequestException(GENERIC_ERROR, "error.authentication-failed");
         }
 
@@ -184,11 +179,9 @@ public class WebAuthnAuthenticatorLogic
 
         if (!clientDataChallenge.equals(authChallenge))
         {
-            if (_logger.isDebugEnabled())
-            {
-                _logger.debug("Failed to validate clientData.challenge, value: {}, expected value: {}",
-                        clientDataChallenge, authChallenge);
-            }
+            _logger.debug("Failed to validate clientData.challenge, value: {}, expected value: {}",
+                    clientDataChallenge, authChallenge);
+
             throw exceptionFactory.badRequestException(GENERIC_ERROR, "error.authentication-failed");
         }
 
@@ -203,20 +196,16 @@ public class WebAuthnAuthenticatorLogic
 
             if (!clientDataOrigin.equals(relyingPartyOrigin))
             {
-                if (_logger.isDebugEnabled())
-                {
-                    _logger.debug("Failed to validate clientData.origin, value: {}, expected value: {}",
-                            clientDataChallenge, relyingPartyOrigin);
-                }
+                _logger.debug("Failed to validate clientData.origin, value: {}, expected value: {}",
+                        clientDataChallenge, relyingPartyOrigin);
+
                 throw exceptionFactory.badRequestException(GENERIC_ERROR, "error.authentication-failed");
             }
         }
         catch (URISyntaxException e)
         {
-            if (_logger.isDebugEnabled())
-            {
-                _logger.debug("Failed to validate clientData.origin:", e);
-            }
+            _logger.debug("Failed to validate clientData.origin: {}", e.getMessage());
+
             throw exceptionFactory.badRequestException(GENERIC_ERROR, "error.authentication-failed");
         }
 
@@ -239,6 +228,7 @@ public class WebAuthnAuthenticatorLogic
                         new String(authDataRpIdHash, StandardCharsets.UTF_8),
                         new String(expectedRpIdHash, StandardCharsets.UTF_8));
             }
+
             throw exceptionFactory.badRequestException(GENERIC_ERROR, "error.authentication-failed");
         }
 
@@ -248,10 +238,8 @@ public class WebAuthnAuthenticatorLogic
 
         if (!userPresentBit)
         {
-            if (_logger.isDebugEnabled())
-            {
-                _logger.debug("Failed to validate that the User Present bit in authData is set");
-            }
+            _logger.debug("Failed to validate that the User Present bit in authData is set");
+
             throw exceptionFactory.badRequestException(GENERIC_ERROR, "error.authentication-failed");
         }
 
@@ -262,10 +250,8 @@ public class WebAuthnAuthenticatorLogic
         if (configuration.getResidentKeyRequirement().equals(
                 ResidentKeyRequirement.required) && isNthBitSet(byteToCheck, 3))
         {
-            if (_logger.isDebugEnabled())
-            {
-                _logger.debug("Failed to validate that the User Verified bit in authData is set");
-            }
+            _logger.debug("Failed to validate that the User Verified bit in authData is set");
+
             throw exceptionFactory.badRequestException(GENERIC_ERROR, "error.authentication-failed");
         }
 
@@ -285,7 +271,7 @@ public class WebAuthnAuthenticatorLogic
 
         if (!algorithm.equals(Algorithm.ES256))
         {
-            _logger.error("Error, algorithm {} is not supported", algorithm.name());
+            _logger.warn("Error, algorithm {} is not supported", algorithm.name());
 
             throw exceptionFactory.badRequestException(CONFIGURATION_ERROR, "error.authentication-failed");
         }
@@ -313,10 +299,8 @@ public class WebAuthnAuthenticatorLogic
 
             if (!verifiedSignature)
             {
-                if (_logger.isDebugEnabled())
-                {
-                    _logger.debug("Failed to validate the signature of the response.");
-                }
+                _logger.debug("Failed to validate the signature of the response.");
+
                 throw exceptionFactory.badRequestException(GENERIC_ERROR, "error.authentication-failed");
             }
         }
@@ -345,25 +329,21 @@ public class WebAuthnAuthenticatorLogic
             int storedSignCount = Integer.parseInt(bucket.getAttributes(deviceId,
                     BUCKET_WEBAUTHN_STORED_SIGNED_COUNT).get(STORED_SIGN_COUNT_ATTRIBUTE).toString());
 
-            if (signCount > 0 || storedSignCount > 0)
+            if (storedSignCount > 0 && signCount > storedSignCount)
             {
-                if (signCount > storedSignCount)
-                {
-                    // Update storedSignCount
-                    bucket.storeAttributes(deviceId, BUCKET_WEBAUTHN_STORED_SIGNED_COUNT,
-                            ImmutableMap.of(STORED_SIGN_COUNT_ATTRIBUTE, signCount));
-                }
-                else if (signCount <= storedSignCount)
-                {
-                    if (_logger.isDebugEnabled())
-                    {
-                        _logger.debug("Stored signature count for device is higher or equal to the signature count " +
-                                "maintained by the device. This might indicate that the authenticator device may be " +
-                                "cloned i.e. at least two copies of the credential private key may exist and are " +
-                                "being used in parallel. The stored sign count will not be updated.");
-                    }
-                    throw exceptionFactory.badRequestException(GENERIC_ERROR, "error.authentication-failed");
-                }
+                // Update storedSignCount
+                bucket.storeAttributes(deviceId, BUCKET_WEBAUTHN_STORED_SIGNED_COUNT,
+                        ImmutableMap.of(STORED_SIGN_COUNT_ATTRIBUTE, signCount));
+            }
+            else if (signCount <= storedSignCount)
+            {
+                _logger.debug("Stored signature count for device is higher or equal to the signature count " +
+                        "maintained by the device. This might indicate that the authenticator device may be " +
+                        "cloned i.e. at least two copies of the credential private key may exist and are " +
+                        "being used in parallel. The stored sign count will not be updated.");
+
+
+                throw exceptionFactory.badRequestException(GENERIC_ERROR, "error.authentication-failed");
             }
         }
 
@@ -409,11 +389,9 @@ public class WebAuthnAuthenticatorLogic
 
         if (!clientDataType.equals(WEBAUTHN_CREATE))
         {
-            if (_logger.isDebugEnabled())
-            {
-                _logger.debug("Failed to validate clientData.type, value: {}, expected value: {}",
-                        clientDataType, WEBAUTHN_CREATE);
-            }
+            _logger.debug("Failed to validate clientData.type, value: {}, expected value: {}",
+                    clientDataType, WEBAUTHN_CREATE);
+
             throw exceptionFactory.badRequestException(GENERIC_ERROR, "error.registration-failed");
         }
 
@@ -425,11 +403,9 @@ public class WebAuthnAuthenticatorLogic
 
         if (!clientDataChallenge.equals(base64EncodedChallengeUsedForRegistration))
         {
-            if (_logger.isDebugEnabled())
-            {
-                _logger.debug("Failed to validate clientData.challenge, value: {}, expected value: {}",
-                        clientDataChallenge, base64EncodedChallengeUsedForRegistration);
-            }
+            _logger.debug("Failed to validate clientData.challenge, value: {}, expected value: {}",
+                    clientDataChallenge, base64EncodedChallengeUsedForRegistration);
+
             throw exceptionFactory.badRequestException(GENERIC_ERROR, "error.registration-failed");
         }
 
@@ -441,11 +417,9 @@ public class WebAuthnAuthenticatorLogic
 
             if (!clientDataOrigin.equals(baseUriHost))
             {
-                if (_logger.isDebugEnabled())
-                {
-                    _logger.debug("Failed to validate clientData.origin, value: {}, expected value: {}",
-                            clientDataOrigin, baseUriHost);
-                }
+                _logger.debug("Failed to validate clientData.origin, value: {}, expected value: {}",
+                        clientDataOrigin, baseUriHost);
+
                 throw exceptionFactory.badRequestException(GENERIC_ERROR, "error.registration-failed");
             }
         }
@@ -454,17 +428,14 @@ public class WebAuthnAuthenticatorLogic
             throw exceptionFactory.badRequestException(GENERIC_ERROR, "Invalid URI in clientData.origin");
         }
 
-        // TODO will we support this?
         // Step 10: Verify that the value of clientData.tokenBinding.status matches the state of Token Binding for the
         // TLS connection over which the assertion was obtained. If Token Binding was used on that TLS connection, also
         // verify that clientData.tokenBinding.id matches the base64url encoding of the Token Binding ID for the
         // connection. This is optional and its absence suggest that the client doesn't supoort it.
         if (clientDataJsonAsMap.get("TokenBinding") != null)
         {
-            if (_logger.isDebugEnabled())
-            {
-                _logger.debug("Failed to validate clientData.tokenBinding.status, Token Binding is not supported");
-            }
+            _logger.debug("Failed to validate clientData.tokenBinding.status, Token Binding is not supported");
+
             throw exceptionFactory.badRequestException(GENERIC_ERROR, "error.registration-failed");
         }
 
@@ -483,20 +454,18 @@ public class WebAuthnAuthenticatorLogic
         }
         catch (IOException e)
         {
-            throw new RuntimeException("Error when parsing attestation object from request.", e);
+            throw new UncheckedIOException("Error when parsing attestation object from request.", e);
         }
 
-        String attestationObjectFmt = attestationObject.getFmt();
-        byte[] attestationObjectAuthData = attestationObject.getAuthData();
+        String attestationObjectFmt = attestationObject.getFormat();
+        byte[] attestationObjectAuthData = attestationObject.getAuthenticatorData();
 
         // Currently the only  attestation supported is "none". If support for more types is going to be added, then
         // the attSmt verification should also be implemented
         if (!attestationObjectFmt.equals(Attestation.none.name()))
         {
-            if (_logger.isDebugEnabled())
-            {
-                _logger.debug("Failed to validate attestationObject.fmt, supported attestation: none");
-            }
+            _logger.debug("Failed to validate attestationObject.fmt, supported attestation: none");
+
             throw exceptionFactory.badRequestException(GENERIC_ERROR, "error.registration-failed");
         }
 
@@ -509,10 +478,8 @@ public class WebAuthnAuthenticatorLogic
 
             if (!Arrays.equals(authDataRpIdHash, expectedRpIdHashFromConfig))
             {
-                if (_logger.isDebugEnabled())
-                {
-                    _logger.debug("Failed to validate attestationObject.authData.rpIdHash");
-                }
+                _logger.debug("Failed to validate attestationObject.authData.rpIdHash");
+
                 throw exceptionFactory.badRequestException(GENERIC_ERROR, "error.registration-failed");
             }
         }
@@ -526,10 +493,8 @@ public class WebAuthnAuthenticatorLogic
 
         if (!isNthBitSet(authDataUserPresentFlag, 0))
         {
-            if (_logger.isDebugEnabled())
-            {
-                _logger.debug("Failed to validate attestationObject.authData UserPresent bit, flag is not set");
-            }
+            _logger.debug("Failed to validate attestationObject.authData UserPresent bit, flag is not set");
+
             throw exceptionFactory.badRequestException(GENERIC_ERROR, "error.registration-failed");
         }
 
@@ -539,10 +504,8 @@ public class WebAuthnAuthenticatorLogic
         {
             if (!isNthBitSet(authDataUserPresentFlag, 2))
             {
-                if (_logger.isDebugEnabled())
-                {
-                    _logger.debug("Failed to validate attestationObject.authData UserVerified bit, flag is not set");
-                }
+                _logger.debug("Failed to validate attestationObject.authData UserVerified bit, flag is not set");
+
                 throw exceptionFactory.badRequestException(GENERIC_ERROR, "error.registration-failed");
             }
         }
@@ -566,7 +529,7 @@ public class WebAuthnAuthenticatorLogic
         }
         catch (IOException e)
         {
-            throw new RuntimeException("Error when parsing attestation object from request.", e);
+            throw new UncheckedIOException("Error when parsing attestation object from request.", e);
         }
 
         // The credentialPublicKey is of type COSE key. See https://tools.ietf.org/html/rfc8152#section-7.1
@@ -584,7 +547,7 @@ public class WebAuthnAuthenticatorLogic
                 CREDENTIAL_PUBLIC_KEY_ATTRIBUTE, credentialPublicKey.toString());
     }
 
-    public static class AttestationObject
+    public static final class AttestationObject
     {
         private static final String FMT_FIELD = "fmt";
         private static final String ATT_STMT_FIELD = "attStmt";
@@ -610,30 +573,30 @@ public class WebAuthnAuthenticatorLogic
                 }
                 catch (IOException e)
                 {
-                    throw new RuntimeException(
-                            "Error, invalid authData field in the attestationObject of the request.");
+                    throw new UncheckedIOException(
+                            "Error, invalid authData field in the attestationObject of the request.", e);
                 }
             }
         }
 
         @SuppressWarnings("unused")
-        public byte[] getAttStmt()
+        public byte[] getAttestationStatement()
         {
             return _attStmt;
         }
 
-        public String getFmt()
+        public String getFormat()
         {
             return _fmt;
         }
 
-        public byte[] getAuthData()
+        public byte[] getAuthenticatorData()
         {
             return _authData;
         }
     }
 
-    public static class CredentialPublicKey
+    public static final class CredentialPublicKey
     {
         private static final String KTY_FIELD = "1";
         private static final String ALG_FIELD = "3";
