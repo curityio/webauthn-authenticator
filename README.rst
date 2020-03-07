@@ -37,8 +37,8 @@ To configure a new WebAuthn authenticator using the Curity admin UI, do the foll
 5. On the next page, you can define all of the standard authenticator configuration options like any previous authenticator that should run, the resulting ACR, transformers that should be executed, etc. At the bottom of the configuration page, the WebAuthn-specific options can be found.
 6. Certain required configuration settings should be provided. One of these required settings is the ``AccountManager`` setting. This is the account manager that will be used to provide the accounts linked to the devices that are going to be used by the authenticator.
 7. Select the ``Bucket`` to use, which sets the data-source for the authenticator.
-9. Select the ``Algorithms`` that WebAuthn is going to choose one from for signing. The algorithms are selected in descending order of preference. Currently only ``ES256`` is supported by the WebAuthn compliant clients.
-10. Finally, configure an ``Organisation Name`` that is going to be linked with the devices upon registration by WebAuthn.
+8. Select the ``Algorithms`` that WebAuthn is going to choose one from for signing. The algorithms are selected in descending order of preference. Currently only ``ES256`` is supported by the WebAuthn compliant clients.
+9. Finally, configure an ``Organisation Name`` that is going to be linked with the devices upon registration by WebAuthn.
 
 Once all of these changes are made, they will be staged, but not committed (i.e., not running). To make them active, click the ``Commit`` menu option in the ``Changes`` menu. Optionally enter a comment in the ``Deploy Changes`` dialogue and click ``OK``.
 
