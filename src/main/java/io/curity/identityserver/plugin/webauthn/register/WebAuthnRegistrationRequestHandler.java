@@ -139,7 +139,7 @@ public final class WebAuthnRegistrationRequestHandler implements RegistrationReq
         response.putViewData("_pubKeyCredParamsAlg", WebAuthnAuthenticatorLogic.getSupportedAlgorithms(
                 _configuration.getJson(), _configuration.getAlgorithms()), ANY);
         response.putViewData("_authenticatorAttachment", _configuration.getAuthenticatorAttachment().get(), ANY);
-        response.putViewData("_timeout", TimeUnit.SECONDS.toSeconds(60), ANY);
+        response.putViewData("_timeout", 60000, ANY);
         response.putViewData("_attestation", _configuration.getAttestation(), ANY);
         response.putViewData("_residentKeyRequirement", _configuration.getResidentKeyRequirement(), ANY);
 
