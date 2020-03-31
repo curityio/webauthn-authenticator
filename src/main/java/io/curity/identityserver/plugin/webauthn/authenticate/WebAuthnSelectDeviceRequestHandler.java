@@ -133,7 +133,7 @@ public final class WebAuthnSelectDeviceRequestHandler implements
 
         response.putViewData("_userVerification", _configuration.getResidentKeyRequirement(), ANY);
         response.putViewData("_challenge", challenge, ANY);
-        response.putViewData("_timeout", TimeUnit.SECONDS.toSeconds(60), ANY);
+        response.putViewData("_timeout", 60000, ANY);
 
         return Optional.empty();
     }
