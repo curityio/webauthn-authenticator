@@ -1,12 +1,13 @@
 WebAuthn Authenticator Plugin
 =============================
 
-   
-.. image:: https://curity.io/assets/images/badges/webauthn-authenticator-quality.svg
-       :target: https://curity.io/resources/code-examples/status/
-       
-.. image:: https://curity.io/assets/images/badges/webauthn-authenticator-availability.svg
-       :target: https://curity.io/resources/code-examples/status/
+.. image:: https://img.shields.io/badge/quality-test-yellow
+    :target: https://curity.io/resources/code-examples/status/
+
+.. image:: https://img.shields.io/badge/availability-binary-blue
+    :target: https://curity.io/resources/code-examples/status/
+
+
     
 This project provides an open source WebAuthn Authenticator plug-in for the Curity Identity Server. This allows an administrator to add functionality to Curity which will then enable end users to login using their physical authenticator devices.
 
