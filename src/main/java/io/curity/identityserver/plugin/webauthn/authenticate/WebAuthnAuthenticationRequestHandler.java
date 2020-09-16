@@ -16,6 +16,7 @@
 
 package io.curity.identityserver.plugin.webauthn.authenticate;
 
+import io.curity.identityserver.plugin.webauthn.WebAuthnAuthenticationSession;
 import io.curity.identityserver.plugin.webauthn.WebAuthnPluginConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,7 @@ import se.curity.identityserver.sdk.http.HttpStatus;
 import se.curity.identityserver.sdk.service.AccountManager;
 import se.curity.identityserver.sdk.service.AutoLoginManager;
 import se.curity.identityserver.sdk.service.ExceptionFactory;
+import se.curity.identityserver.sdk.service.SessionManager;
 import se.curity.identityserver.sdk.service.UserPreferenceManager;
 import se.curity.identityserver.sdk.web.Request;
 import se.curity.identityserver.sdk.web.Response;
@@ -41,7 +43,7 @@ import static se.curity.identityserver.sdk.http.HttpStatus.OK;
 import static se.curity.identityserver.sdk.web.Response.ResponseModelScope.NOT_FAILURE;
 import static se.curity.identityserver.sdk.web.ResponseModel.templateResponseModel;
 
-public class WebAuthnAuthenticationRequestHandler implements
+public final class WebAuthnAuthenticationRequestHandler implements
         AuthenticatorRequestHandler<WebAuthnAuthenticationRequestModel>
 {
     private static final Logger _logger = LoggerFactory.getLogger(WebAuthnAuthenticationRequestHandler.class);
@@ -51,6 +53,7 @@ public class WebAuthnAuthenticationRequestHandler implements
     private final AutoLoginManager _autoLoginManager;
     private final AuthenticatedState _authenticatedState;
     private final ExceptionFactory _exceptionFactory;
+    private final SessionManager _sessionManager;
 
     public WebAuthnAuthenticationRequestHandler(WebAuthnPluginConfiguration configuration,
                                                 AuthenticatedState authenticatedState,
@@ -62,6 +65,7 @@ public class WebAuthnAuthenticationRequestHandler implements
         _autoLoginManager = autoLoginManager;
         _authenticatedState = authenticatedState;
         _exceptionFactory = configuration.getExceptionFactory();
+        _sessionManager = configuration.getSessionManager();
     }
 
     @Override
@@ -119,6 +123,7 @@ public class WebAuthnAuthenticationRequestHandler implements
 
         if (account != null)
         {
+            WebAuthnAuthenticationSession.createAndSave(username, _sessionManager);
             _userPreferenceManager.saveUsername(username);
         }
         else
