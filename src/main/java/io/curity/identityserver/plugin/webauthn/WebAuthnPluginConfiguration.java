@@ -21,6 +21,7 @@ import se.curity.identityserver.sdk.config.Configuration;
 import se.curity.identityserver.sdk.config.annotation.DefaultBoolean;
 import se.curity.identityserver.sdk.config.annotation.DefaultEnum;
 import se.curity.identityserver.sdk.config.annotation.Description;
+import se.curity.identityserver.sdk.config.annotation.SizeConstraint;
 import se.curity.identityserver.sdk.service.AccountManager;
 import se.curity.identityserver.sdk.service.Bucket;
 import se.curity.identityserver.sdk.service.ExceptionFactory;
@@ -77,6 +78,7 @@ public interface WebAuthnPluginConfiguration extends Configuration
     @Description("The signature algorithms used by WebAuthn. This is in the form of a sequence and it is ordered " +
             "from most preferred to least preferred. The client makes a best-effort to create the most preferred " +
             "credential that it can.")
+    @SizeConstraint(min = 1)
     List<Algorithm> getAlgorithms();
 
     /*
