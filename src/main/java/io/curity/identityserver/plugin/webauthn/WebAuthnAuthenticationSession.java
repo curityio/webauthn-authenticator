@@ -57,8 +57,7 @@ public class WebAuthnAuthenticationSession
         sessionManager.put(Attribute.of(WEBAUTHN_USERNAME_KEY, username));
         sessionManager.put(Attribute.of(WEBAUTHN_SESSION_ID_KEY, sessionId));
 
-        WebAuthnAuthenticationSession WebAuthAuthenticationSession = new WebAuthnAuthenticationSession(username,
-                sessionId);
+        new WebAuthnAuthenticationSession(username, sessionId);
     }
 
     public static WebAuthnAuthenticationSession readFromSession(SessionManager sessionManager,

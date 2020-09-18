@@ -25,7 +25,6 @@ import se.curity.identityserver.sdk.attribute.AccountAttributes;
 import se.curity.identityserver.sdk.authentication.AuthenticatedState;
 import se.curity.identityserver.sdk.authentication.AuthenticationResult;
 import se.curity.identityserver.sdk.authentication.AuthenticatorRequestHandler;
-import se.curity.identityserver.sdk.http.HttpStatus;
 import se.curity.identityserver.sdk.service.AccountManager;
 import se.curity.identityserver.sdk.service.AutoLoginManager;
 import se.curity.identityserver.sdk.service.ExceptionFactory;
@@ -38,8 +37,9 @@ import java.util.Collections;
 import java.util.Optional;
 
 import static io.curity.identityserver.plugin.webauthn.WebAuthnPluginDescriptor.SELECT_DEVICE;
+import static se.curity.identityserver.sdk.errors.ErrorCode.GENERIC_ERROR;
 import static se.curity.identityserver.sdk.errors.ErrorCode.NO_ACCOUNT_TO_SELECT;
-import static se.curity.identityserver.sdk.http.HttpStatus.OK;
+import static se.curity.identityserver.sdk.web.Response.ResponseModelScope.ANY;
 import static se.curity.identityserver.sdk.web.Response.ResponseModelScope.NOT_FAILURE;
 import static se.curity.identityserver.sdk.web.ResponseModel.templateResponseModel;
 
@@ -71,11 +71,10 @@ public final class WebAuthnAuthenticationRequestHandler implements
     @Override
     public WebAuthnAuthenticationRequestModel preProcess(Request request, Response response)
     {
-        response.setResponseModel(templateResponseModel(Collections.emptyMap(),
-                "enter-username/index"), HttpStatus.BAD_REQUEST);
+        response.setResponseModel(templateResponseModel(Collections.emptyMap(), "enter-username/index"), ANY);
         response.putViewData("_registrationEndpoint",
                 _configuration.getAuthenticatorInformationProvider().getFullyQualifiedRegistrationUri(),
-                Response.ResponseModelScope.ANY);
+                ANY);
 
         return new WebAuthnAuthenticationRequestModel(request);
     }
@@ -86,37 +85,44 @@ public final class WebAuthnAuthenticationRequestHandler implements
         if (_configuration.getAutoLoginEnabled())
         {
             Optional<AuthenticationResult> maybeResult = _autoLoginManager.getAutoLoginFromCurrentSession();
+
             if (maybeResult.isPresent())
             {
                 return maybeResult;
             }
         }
 
-        if (!_authenticatedState.isAuthenticated())
+        if (_authenticatedState.isAuthenticated())
         {
-            response.putViewData("_username", _configuration.getUserPreferenceManager().getUsername(),
-                    NOT_FAILURE);
-            response.setResponseModel(templateResponseModel(Collections.emptyMap(), "enter-username/index"),
-                    OK);
+            checkUserAndCreateAuthSession(_authenticatedState.getUsername());
 
-            return Optional.empty();
+            return redirectToDeviceSelection();
         }
 
-        checkAndStoreUsername(_authenticatedState.getUsername());
+        response.putViewData("_username", _configuration.getUserPreferenceManager().getUsername(),
+                NOT_FAILURE);
 
-        return redirectToDeviceSelection();
+        return Optional.empty();
     }
 
     @Override
     public Optional<AuthenticationResult> post(WebAuthnAuthenticationRequestModel requestModel, Response response)
     {
+        if (_authenticatedState.isAuthenticated())
+        {
+            _logger.debug("The user is already authenticated with a previous factor. A POST request is not allowed " +
+                    "since it could be an attempt to change users.");
+
+            throw _exceptionFactory.badRequestException(GENERIC_ERROR);
+        }
+
         WebAuthnAuthenticationRequestModel.Post model = requestModel.getPostRequestModel();
-        checkAndStoreUsername(model.getUsername());
+        checkUserAndCreateAuthSession(model.getUsername());
 
         return redirectToDeviceSelection();
     }
 
-    private void checkAndStoreUsername(String username)
+    private void checkUserAndCreateAuthSession(String username)
     {
         @Nullable
         AccountAttributes account = _accountManager.getByUserName(username);

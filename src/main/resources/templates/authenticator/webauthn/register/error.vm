@@ -14,8 +14,6 @@
 *  limitations under the License.
 *#
 
-#set ($page_symbol = $page_symbol_done)
-
 #define($_body)
 <div class="area">
     <div class="center">
