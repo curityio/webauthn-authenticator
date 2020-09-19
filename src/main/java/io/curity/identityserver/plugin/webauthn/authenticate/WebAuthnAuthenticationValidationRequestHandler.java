@@ -19,6 +19,7 @@ package io.curity.identityserver.plugin.webauthn.authenticate;
 import io.curity.identityserver.plugin.webauthn.WebAuthnAuthenticationSession;
 import io.curity.identityserver.plugin.webauthn.WebAuthnAuthenticatorLogic;
 import io.curity.identityserver.plugin.webauthn.WebAuthnPluginConfiguration;
+import io.curity.identityserver.plugin.webauthn.authenticate.WebAuthnAuthenticationValidationRequestModel.Post;
 import se.curity.identityserver.sdk.Nullable;
 import se.curity.identityserver.sdk.attribute.AccountAttributes;
 import se.curity.identityserver.sdk.attribute.AuthenticationAttributes;
@@ -66,7 +67,7 @@ public final class WebAuthnAuthenticationValidationRequestHandler implements
     @Override
     public Optional<AuthenticationResult> post(WebAuthnAuthenticationValidationRequestModel request, Response response)
     {
-        WebAuthnAuthenticationValidationRequestModel.Post model = request.getPostRequestModel();
+        Post model = request.getPostRequestModel();
 
         Optional<AuthenticationResult> authenticationResult = Optional.empty();
 
@@ -108,6 +109,8 @@ public final class WebAuthnAuthenticationValidationRequestHandler implements
                 }
             }
         }
+
+        WebAuthnAuthenticationSession.clear(_sessionManager);
 
         return authenticationResult;
     }
