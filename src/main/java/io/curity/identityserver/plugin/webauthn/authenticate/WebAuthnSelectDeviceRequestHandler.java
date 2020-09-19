@@ -18,6 +18,7 @@ package io.curity.identityserver.plugin.webauthn.authenticate;
 
 import io.curity.identityserver.plugin.webauthn.WebAuthnAuthenticationSession;
 import io.curity.identityserver.plugin.webauthn.WebAuthnPluginConfiguration;
+import io.curity.identityserver.plugin.webauthn.authenticate.WebAuthnSelectDeviceRequestModel.Post;
 import org.apache.commons.lang3.RandomUtils;
 import se.curity.identityserver.sdk.attribute.Attribute;
 import se.curity.identityserver.sdk.attribute.scim.v2.extensions.Device;
@@ -95,7 +96,7 @@ public final class WebAuthnSelectDeviceRequestHandler implements
     @Override
     public Optional<AuthenticationResult> post(WebAuthnSelectDeviceRequestModel request, Response response)
     {
-        WebAuthnSelectDeviceRequestModel.Post model = request.getPostRequestModel();
+        Post model = request.getPostRequestModel();
         List<Device> devicesByUserName = getDevicesForUser(_usernameInAuthSession);
 
         Optional<Device> maybeSelectedDevice = devicesByUserName.stream().filter(device ->
