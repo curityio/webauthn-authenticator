@@ -32,7 +32,6 @@ import static se.curity.identityserver.sdk.errors.ErrorCode.INVALID_INPUT;
  */
 public class WebAuthnAuthenticationSession
 {
-    private static final String WEBAUTHN_SESSION_DATA_PREFIX = "webauthn_";
     static final String WEBAUTHN_USERNAME_KEY = "webauthn_username";
     static final String WEBAUTHN_SESSION_ID_KEY = "webauthn_session_id";
     static final Set<String> webAuthnSessionKeys = ImmutableSet.of(WEBAUTHN_SESSION_ID_KEY, WEBAUTHN_USERNAME_KEY);
@@ -46,7 +45,6 @@ public class WebAuthnAuthenticationSession
         _sessionId = sessionId;
     }
 
-    // TODO Add devices?
     public static void createAndSave(String username,
                                      SessionManager sessionManager)
     {
@@ -77,7 +75,7 @@ public class WebAuthnAuthenticationSession
         throw exceptionFactory.badRequestException(INVALID_INPUT);
     }
 
-    private static void clear(SessionManager sessionManager)
+    public static void clear(SessionManager sessionManager)
     {
         webAuthnSessionKeys.forEach(sessionManager::remove);
     }
@@ -87,6 +85,7 @@ public class WebAuthnAuthenticationSession
         return _username;
     }
 
+    @SuppressWarnings("unused")
     public String getSessionId()
     {
         return _sessionId;
