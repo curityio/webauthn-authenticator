@@ -41,7 +41,6 @@ import java.util.Base64;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import static io.curity.identityserver.plugin.webauthn.WebAuthnAuthenticatorLogic.CREDENTIAL_ID_ATTRIBUTE;
 import static io.curity.identityserver.plugin.webauthn.WebAuthnAuthenticatorLogic.CREDENTIAL_PUBLIC_KEY_ATTRIBUTE;
@@ -91,26 +90,12 @@ public final class WebAuthnRegistrationRequestHandler implements RegistrationReq
                             "configuration of the account manager");
         }
 
-        if (!_authenticatedState.isAuthenticated())
+        if (_authenticatedState.isAuthenticated())
         {
-            throw _exceptionFactory.unauthorizedException(ErrorCode.ACCESS_DENIED, "Not Authorized");
+            return new WebAuthnRegistrationRequestModel(request);
         }
 
-        if (request.isPostRequest())
-        {
-            response.setResponseModel(templateResponseModel(emptyMap(), "register/error"),
-                    FAILURE);
-
-            response.setResponseModel(templateResponseModel(emptyMap(), "register/done"),
-                    NOT_FAILURE);
-        }
-        else if (request.isGetRequest())
-        {
-            response.setResponseModel(templateResponseModel(emptyMap(), "register/get"),
-                    ANY);
-        }
-
-        return new WebAuthnRegistrationRequestModel(request);
+        throw _exceptionFactory.unauthorizedException(ErrorCode.ACCESS_DENIED, "Not Authorized");
     }
 
     @Override
@@ -128,6 +113,7 @@ public final class WebAuthnRegistrationRequestHandler implements RegistrationReq
                     "There is no account for the provided username in the configured Account Manager");
         }
 
+        response.setResponseModel(templateResponseModel(emptyMap(), "register/get"), ANY);
         response.putViewData("_registrationEndpoint", _configuration.getAuthenticatorInformationProvider()
                 .getFullyQualifiedRegistrationUri(), ANY);
         response.putViewData("_challenge", _registrationChallenge, ANY);
@@ -149,6 +135,8 @@ public final class WebAuthnRegistrationRequestHandler implements RegistrationReq
     @Override
     public Optional<RegistrationResult> post(WebAuthnRegistrationRequestModel request, Response response)
     {
+        response.setResponseModel(templateResponseModel(emptyMap(), "register/error"), FAILURE);
+        response.setResponseModel(templateResponseModel(emptyMap(), "register/done"), NOT_FAILURE);
         WebAuthnRegistrationRequestModel.Post model = request.getPostRequestModel();
 
         Map<String, String> registrationResult = WebAuthnAuthenticatorLogic.validateRegistration(_configuration,
