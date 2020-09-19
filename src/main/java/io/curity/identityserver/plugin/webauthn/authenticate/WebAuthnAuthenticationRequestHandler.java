@@ -18,6 +18,7 @@ package io.curity.identityserver.plugin.webauthn.authenticate;
 
 import io.curity.identityserver.plugin.webauthn.WebAuthnAuthenticationSession;
 import io.curity.identityserver.plugin.webauthn.WebAuthnPluginConfiguration;
+import io.curity.identityserver.plugin.webauthn.authenticate.WebAuthnAuthenticationRequestModel.Post;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.curity.identityserver.sdk.Nullable;
@@ -37,7 +38,6 @@ import java.util.Collections;
 import java.util.Optional;
 
 import static io.curity.identityserver.plugin.webauthn.WebAuthnPluginDescriptor.SELECT_DEVICE;
-import static se.curity.identityserver.sdk.errors.ErrorCode.GENERIC_ERROR;
 import static se.curity.identityserver.sdk.errors.ErrorCode.NO_ACCOUNT_TO_SELECT;
 import static se.curity.identityserver.sdk.web.Response.ResponseModelScope.ANY;
 import static se.curity.identityserver.sdk.web.Response.ResponseModelScope.NOT_FAILURE;
@@ -108,16 +108,16 @@ public final class WebAuthnAuthenticationRequestHandler implements
     @Override
     public Optional<AuthenticationResult> post(WebAuthnAuthenticationRequestModel requestModel, Response response)
     {
-        if (_authenticatedState.isAuthenticated())
-        {
-            _logger.debug("The user is already authenticated with a previous factor. A POST request is not allowed " +
-                    "since it could be an attempt to change users.");
+        Post model = requestModel.getPostRequestModel();
 
-            throw _exceptionFactory.badRequestException(GENERIC_ERROR);
+        if (!_authenticatedState.isAuthenticated())
+        {
+            checkUserAndCreateAuthSession(model.getUsername());
+
+            return redirectToDeviceSelection();
         }
 
-        WebAuthnAuthenticationRequestModel.Post model = requestModel.getPostRequestModel();
-        checkUserAndCreateAuthSession(model.getUsername());
+        checkUserAndCreateAuthSession(_authenticatedState.getUsername());
 
         return redirectToDeviceSelection();
     }
