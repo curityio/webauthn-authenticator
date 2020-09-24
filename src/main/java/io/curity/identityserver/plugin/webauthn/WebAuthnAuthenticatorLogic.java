@@ -538,7 +538,8 @@ public class WebAuthnAuthenticatorLogic
         {
             if (_logger.isDebugEnabled())
             {
-                _logger.debug("Failed to validate attestationObject.authData.alg");
+                _logger.debug("Failed to validate attestationObject.authData.alg. The algorithm in the attestation " +
+                        "object is not among the ones configured for the authenticator");
             }
             throw exceptionFactory.badRequestException(GENERIC_ERROR, "error.registration-failed");
         }
