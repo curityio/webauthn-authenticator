@@ -32,9 +32,9 @@ import static se.curity.identityserver.sdk.errors.ErrorCode.INVALID_INPUT;
  */
 public class WebAuthnAuthenticationSession
 {
-    static final String WEBAUTHN_USERNAME_KEY = "webauthn_username";
-    static final String WEBAUTHN_SESSION_ID_KEY = "webauthn_session_id";
-    static final Set<String> webAuthnSessionKeys = ImmutableSet.of(WEBAUTHN_SESSION_ID_KEY, WEBAUTHN_USERNAME_KEY);
+    private static final String WEBAUTHN_USERNAME_KEY = "webauthn_username";
+    private static final String WEBAUTHN_SESSION_ID_KEY = "webauthn_session_id";
+    private static final Set<String> webAuthnSessionKeys = ImmutableSet.of(WEBAUTHN_SESSION_ID_KEY, WEBAUTHN_USERNAME_KEY);
     private final String _username;
     private final String _sessionId;
 

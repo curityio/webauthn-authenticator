@@ -53,7 +53,7 @@ public final class WebAuthnSelectDeviceRequestHandler implements
     private final SessionManager _sessionManager;
     private final AccountManager _accountManager;
     private final ExceptionFactory _exceptionFactory;
-    private final String _usernameInAuthSession;
+    private String _usernameInAuthSession;
 
     public WebAuthnSelectDeviceRequestHandler(WebAuthnPluginConfiguration configuration)
     {
@@ -61,12 +61,6 @@ public final class WebAuthnSelectDeviceRequestHandler implements
         _accountManager = configuration.getAccountManager();
         _sessionManager = configuration.getSessionManager();
         _exceptionFactory = configuration.getExceptionFactory();
-
-        WebAuthnAuthenticationSession webAuthnAuthenticationSession = WebAuthnAuthenticationSession.readFromSession(
-                _sessionManager,
-                _exceptionFactory);
-
-        _usernameInAuthSession = webAuthnAuthenticationSession.getUsername();
     }
 
     @Override
@@ -83,6 +77,12 @@ public final class WebAuthnSelectDeviceRequestHandler implements
                 .getFullyQualifiedAuthenticationUri() + "/" + VALIDATION, ANY);
         response.putViewData("_selectDeviceEndpoint", _configuration.getAuthenticatorInformationProvider()
                 .getFullyQualifiedAuthenticationUri() + "/" + SELECT_DEVICE, ANY);
+
+        WebAuthnAuthenticationSession webAuthnAuthenticationSession = WebAuthnAuthenticationSession.readFromSession(
+                _sessionManager,
+                _exceptionFactory);
+
+        _usernameInAuthSession = webAuthnAuthenticationSession.getUsername();
 
         return new WebAuthnSelectDeviceRequestModel(request, _usernameInAuthSession);
     }
