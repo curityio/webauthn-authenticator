@@ -16,7 +16,9 @@
 
 package io.curity.identityserver.plugin.webauthn.authenticate;
 
+import io.curity.identityserver.plugin.webauthn.WebAuthnAuthenticationSession;
 import io.curity.identityserver.plugin.webauthn.WebAuthnPluginConfiguration;
+import io.curity.identityserver.plugin.webauthn.authenticate.WebAuthnAuthenticationRequestModel.Post;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.curity.identityserver.sdk.Nullable;
@@ -24,10 +26,10 @@ import se.curity.identityserver.sdk.attribute.AccountAttributes;
 import se.curity.identityserver.sdk.authentication.AuthenticatedState;
 import se.curity.identityserver.sdk.authentication.AuthenticationResult;
 import se.curity.identityserver.sdk.authentication.AuthenticatorRequestHandler;
-import se.curity.identityserver.sdk.http.HttpStatus;
 import se.curity.identityserver.sdk.service.AccountManager;
 import se.curity.identityserver.sdk.service.AutoLoginManager;
 import se.curity.identityserver.sdk.service.ExceptionFactory;
+import se.curity.identityserver.sdk.service.SessionManager;
 import se.curity.identityserver.sdk.service.UserPreferenceManager;
 import se.curity.identityserver.sdk.web.Request;
 import se.curity.identityserver.sdk.web.Response;
@@ -37,11 +39,11 @@ import java.util.Optional;
 
 import static io.curity.identityserver.plugin.webauthn.WebAuthnPluginDescriptor.SELECT_DEVICE;
 import static se.curity.identityserver.sdk.errors.ErrorCode.NO_ACCOUNT_TO_SELECT;
-import static se.curity.identityserver.sdk.http.HttpStatus.OK;
+import static se.curity.identityserver.sdk.web.Response.ResponseModelScope.ANY;
 import static se.curity.identityserver.sdk.web.Response.ResponseModelScope.NOT_FAILURE;
 import static se.curity.identityserver.sdk.web.ResponseModel.templateResponseModel;
 
-public class WebAuthnAuthenticationRequestHandler implements
+public final class WebAuthnAuthenticationRequestHandler implements
         AuthenticatorRequestHandler<WebAuthnAuthenticationRequestModel>
 {
     private static final Logger _logger = LoggerFactory.getLogger(WebAuthnAuthenticationRequestHandler.class);
@@ -51,6 +53,7 @@ public class WebAuthnAuthenticationRequestHandler implements
     private final AutoLoginManager _autoLoginManager;
     private final AuthenticatedState _authenticatedState;
     private final ExceptionFactory _exceptionFactory;
+    private final SessionManager _sessionManager;
 
     public WebAuthnAuthenticationRequestHandler(WebAuthnPluginConfiguration configuration,
                                                 AuthenticatedState authenticatedState,
@@ -62,16 +65,16 @@ public class WebAuthnAuthenticationRequestHandler implements
         _autoLoginManager = autoLoginManager;
         _authenticatedState = authenticatedState;
         _exceptionFactory = configuration.getExceptionFactory();
+        _sessionManager = configuration.getSessionManager();
     }
 
     @Override
     public WebAuthnAuthenticationRequestModel preProcess(Request request, Response response)
     {
-        response.setResponseModel(templateResponseModel(Collections.emptyMap(),
-                "enter-username/index"), HttpStatus.BAD_REQUEST);
+        response.setResponseModel(templateResponseModel(Collections.emptyMap(), "enter-username/index"), ANY);
         response.putViewData("_registrationEndpoint",
                 _configuration.getAuthenticatorInformationProvider().getFullyQualifiedRegistrationUri(),
-                Response.ResponseModelScope.ANY);
+                ANY);
 
         return new WebAuthnAuthenticationRequestModel(request);
     }
@@ -82,43 +85,51 @@ public class WebAuthnAuthenticationRequestHandler implements
         if (_configuration.getAutoLoginEnabled())
         {
             Optional<AuthenticationResult> maybeResult = _autoLoginManager.getAutoLoginFromCurrentSession();
+
             if (maybeResult.isPresent())
             {
                 return maybeResult;
             }
         }
 
-        if (!_authenticatedState.isAuthenticated())
+        if (_authenticatedState.isAuthenticated())
         {
-            response.putViewData("_username", _configuration.getUserPreferenceManager().getUsername(),
-                    NOT_FAILURE);
-            response.setResponseModel(templateResponseModel(Collections.emptyMap(), "enter-username/index"),
-                    OK);
+            checkUserAndCreateAuthSession(_authenticatedState.getUsername());
 
-            return Optional.empty();
+            return redirectToDeviceSelection();
         }
 
-        checkAndStoreUsername(_authenticatedState.getUsername());
+        response.putViewData("_username", _configuration.getUserPreferenceManager().getUsername(),
+                NOT_FAILURE);
 
-        return redirectToDeviceSelection();
+        return Optional.empty();
     }
 
     @Override
     public Optional<AuthenticationResult> post(WebAuthnAuthenticationRequestModel requestModel, Response response)
     {
-        WebAuthnAuthenticationRequestModel.Post model = requestModel.getPostRequestModel();
-        checkAndStoreUsername(model.getUsername());
+        Post model = requestModel.getPostRequestModel();
+
+        if (!_authenticatedState.isAuthenticated())
+        {
+            checkUserAndCreateAuthSession(model.getUsername());
+
+            return redirectToDeviceSelection();
+        }
+
+        checkUserAndCreateAuthSession(_authenticatedState.getUsername());
 
         return redirectToDeviceSelection();
     }
 
-    private void checkAndStoreUsername(String username)
+    private void checkUserAndCreateAuthSession(String username)
     {
         @Nullable
         AccountAttributes account = _accountManager.getByUserName(username);
 
         if (account != null)
         {
+            WebAuthnAuthenticationSession.createAndSave(username, _sessionManager);
             _userPreferenceManager.saveUsername(username);
         }
         else

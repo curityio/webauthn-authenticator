@@ -16,8 +16,10 @@
 
 package io.curity.identityserver.plugin.webauthn.authenticate;
 
+import io.curity.identityserver.plugin.webauthn.WebAuthnAuthenticationSession;
 import io.curity.identityserver.plugin.webauthn.WebAuthnAuthenticatorLogic;
 import io.curity.identityserver.plugin.webauthn.WebAuthnPluginConfiguration;
+import io.curity.identityserver.plugin.webauthn.authenticate.WebAuthnAuthenticationValidationRequestModel.Post;
 import se.curity.identityserver.sdk.Nullable;
 import se.curity.identityserver.sdk.attribute.AccountAttributes;
 import se.curity.identityserver.sdk.attribute.AuthenticationAttributes;
@@ -28,6 +30,7 @@ import se.curity.identityserver.sdk.authentication.AuthenticationResult;
 import se.curity.identityserver.sdk.authentication.AuthenticatorRequestHandler;
 import se.curity.identityserver.sdk.service.AccountManager;
 import se.curity.identityserver.sdk.service.ExceptionFactory;
+import se.curity.identityserver.sdk.service.SessionManager;
 import se.curity.identityserver.sdk.web.Request;
 import se.curity.identityserver.sdk.web.Response;
 
@@ -45,12 +48,14 @@ public final class WebAuthnAuthenticationValidationRequestHandler implements
     private final WebAuthnPluginConfiguration _configuration;
     private final ExceptionFactory _exceptionFactory;
     private final AccountManager _accountManager;
+    private final SessionManager _sessionManager;
 
     public WebAuthnAuthenticationValidationRequestHandler(WebAuthnPluginConfiguration configuration)
     {
         _configuration = configuration;
         _accountManager = configuration.getAccountManager();
         _exceptionFactory = configuration.getExceptionFactory();
+        _sessionManager = configuration.getSessionManager();
     }
 
     @Override
@@ -62,13 +67,17 @@ public final class WebAuthnAuthenticationValidationRequestHandler implements
     @Override
     public Optional<AuthenticationResult> post(WebAuthnAuthenticationValidationRequestModel request, Response response)
     {
-        WebAuthnAuthenticationValidationRequestModel.Post model = request.getPostRequestModel();
+        Post model = request.getPostRequestModel();
 
         Optional<AuthenticationResult> authenticationResult = Optional.empty();
 
+        WebAuthnAuthenticationSession webAuthnAuthenticationSession = WebAuthnAuthenticationSession.readFromSession(
+                _sessionManager,
+                _exceptionFactory);
+
         @Nullable
-        AccountAttributes accountAttributes = _accountManager.getByUserName(_configuration
-                .getUserPreferenceManager().getUsername());
+        AccountAttributes accountAttributes = _accountManager.getByUserName(
+                webAuthnAuthenticationSession.getUsername());
 
         if (accountAttributes != null)
         {
@@ -100,6 +109,8 @@ public final class WebAuthnAuthenticationValidationRequestHandler implements
                 }
             }
         }
+
+        WebAuthnAuthenticationSession.clear(_sessionManager);
 
         return authenticationResult;
     }

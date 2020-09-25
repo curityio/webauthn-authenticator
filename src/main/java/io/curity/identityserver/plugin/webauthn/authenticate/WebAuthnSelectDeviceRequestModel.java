@@ -18,7 +18,6 @@ package io.curity.identityserver.plugin.webauthn.authenticate;
 
 import org.hibernate.validator.constraints.NotBlank;
 import se.curity.identityserver.sdk.Nullable;
-import se.curity.identityserver.sdk.service.UserPreferenceManager;
 import se.curity.identityserver.sdk.web.Request;
 
 import javax.validation.Valid;
@@ -33,10 +32,10 @@ final class WebAuthnSelectDeviceRequestModel
     @Nullable
     private final Get _getRequestModel;
 
-    WebAuthnSelectDeviceRequestModel(Request request, UserPreferenceManager userPreferenceManager)
+    WebAuthnSelectDeviceRequestModel(Request request, String username)
     {
-        _postRequestModel = request.isPostRequest() ? new Post(request, userPreferenceManager) : null;
-        _getRequestModel = request.isGetRequest() ? new Get(userPreferenceManager) : null;
+        _postRequestModel = request.isPostRequest() ? new Post(request, username) : null;
+        _getRequestModel = request.isGetRequest() ? new Get(username) : null;
     }
 
     Post getPostRequestModel()
@@ -67,9 +66,9 @@ final class WebAuthnSelectDeviceRequestModel
     {
         private final String _username;
 
-        Get(UserPreferenceManager userPreferenceManager)
+        Get(String username)
         {
-            _username = userPreferenceManager.getUsername();
+            _username = username;
         }
 
         String getUsername()
@@ -88,9 +87,9 @@ final class WebAuthnSelectDeviceRequestModel
         @NotBlank(message = "validaton.error.device.required")
         private final String _deviceId;
 
-        Post(Request request, UserPreferenceManager userPreferenceManager)
+        Post(Request request, String username)
         {
-            _username = userPreferenceManager.getUsername();
+            _username = username;
             _deviceId = request.getFormParameterValueOrError(DEVICE_ID_PARAM);
         }
 

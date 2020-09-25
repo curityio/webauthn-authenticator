@@ -16,7 +16,9 @@
 
 package io.curity.identityserver.plugin.webauthn.authenticate;
 
+import io.curity.identityserver.plugin.webauthn.WebAuthnAuthenticationSession;
 import io.curity.identityserver.plugin.webauthn.WebAuthnPluginConfiguration;
+import io.curity.identityserver.plugin.webauthn.authenticate.WebAuthnSelectDeviceRequestModel.Post;
 import org.apache.commons.lang3.RandomUtils;
 import se.curity.identityserver.sdk.attribute.Attribute;
 import se.curity.identityserver.sdk.attribute.scim.v2.extensions.Device;
@@ -25,7 +27,6 @@ import se.curity.identityserver.sdk.authentication.AuthenticatorRequestHandler;
 import se.curity.identityserver.sdk.service.AccountManager;
 import se.curity.identityserver.sdk.service.ExceptionFactory;
 import se.curity.identityserver.sdk.service.SessionManager;
-import se.curity.identityserver.sdk.service.UserPreferenceManager;
 import se.curity.identityserver.sdk.web.Request;
 import se.curity.identityserver.sdk.web.Response;
 
@@ -35,7 +36,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static io.curity.identityserver.plugin.webauthn.WebAuthnAuthenticatorLogic.CREDENTIAL_ID_ATTRIBUTE;
@@ -52,15 +52,14 @@ public final class WebAuthnSelectDeviceRequestHandler implements
     private final WebAuthnPluginConfiguration _configuration;
     private final SessionManager _sessionManager;
     private final AccountManager _accountManager;
-    private final UserPreferenceManager _userPreferenceManager;
     private final ExceptionFactory _exceptionFactory;
+    private String _usernameInAuthSession;
 
     public WebAuthnSelectDeviceRequestHandler(WebAuthnPluginConfiguration configuration)
     {
         _configuration = configuration;
         _accountManager = configuration.getAccountManager();
         _sessionManager = configuration.getSessionManager();
-        _userPreferenceManager = configuration.getUserPreferenceManager();
         _exceptionFactory = configuration.getExceptionFactory();
     }
 
@@ -79,22 +78,26 @@ public final class WebAuthnSelectDeviceRequestHandler implements
         response.putViewData("_selectDeviceEndpoint", _configuration.getAuthenticatorInformationProvider()
                 .getFullyQualifiedAuthenticationUri() + "/" + SELECT_DEVICE, ANY);
 
-        return new WebAuthnSelectDeviceRequestModel(request, _userPreferenceManager);
+        WebAuthnAuthenticationSession webAuthnAuthenticationSession = WebAuthnAuthenticationSession.readFromSession(
+                _sessionManager,
+                _exceptionFactory);
+
+        _usernameInAuthSession = webAuthnAuthenticationSession.getUsername();
+
+        return new WebAuthnSelectDeviceRequestModel(request, _usernameInAuthSession);
     }
 
     @Override
     public Optional<AuthenticationResult> get(WebAuthnSelectDeviceRequestModel request, Response response)
     {
-        WebAuthnSelectDeviceRequestModel.Get model = request.getGetRequestModel();
-
-        return handle(getDevicesForUser(model.getUsername()), response);
+        return handle(getDevicesForUser(_usernameInAuthSession), response);
     }
 
     @Override
     public Optional<AuthenticationResult> post(WebAuthnSelectDeviceRequestModel request, Response response)
     {
-        WebAuthnSelectDeviceRequestModel.Post model = request.getPostRequestModel();
-        List<Device> devicesByUserName = getDevicesForUser(model.getUsername());
+        Post model = request.getPostRequestModel();
+        List<Device> devicesByUserName = getDevicesForUser(_usernameInAuthSession);
 
         Optional<Device> maybeSelectedDevice = devicesByUserName.stream().filter(device ->
                 model.getDeviceId().equals(device.getDeviceId())).findFirst();
