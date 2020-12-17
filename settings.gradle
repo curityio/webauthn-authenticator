@@ -1,0 +1,14 @@
+pluginManagement {
+    def mavenCreds = {
+        username(gradle.startParameter.offline ? '' : "${mavenUser}")
+        password(gradle.startParameter.offline ? '' : "${mavenPassword}")
+    }
+    repositories {
+        maven {
+            url "https://nexus.curity.se/nexus/content/repositories/customer-release-repo/"
+            credentials mavenCreds
+        }
+    }
+}
+
+rootProject.name = 'identityserver.plugins.authenticators.webauthn'
